@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kirtan Control Panel</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: white;
+  min-height: 100vh;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(56, 189, 248, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  max-width: 1000px;
+  margin: auto;
+  position: relative;
+  z-index: 1;
+  animation: slideDown 0.8s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+h1 {
+  text-align: center;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  background: linear-gradient(135deg, #38bdf8, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3));
+  }
+  to {
+    filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.5));
+  }
+}
+
+.sub {
+  text-align: center;
+  color: #94a3b8;
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  margin-bottom: 30px;
+  letter-spacing: 3px;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 30px 0;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  background: linear-gradient(135deg, #1e293b, #334155);
+  border: 2px solid rgba(56, 189, 248, 0.2);
+  padding: 14px 28px;
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.tab-btn:hover {
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  border-color: #38bdf8;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(56, 189, 248, 0.4);
+}
+
+.tab-btn:active {
+  transform: translateY(-1px);
+}
+
+.tab {
+  display: none;
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 20px;
+  padding: clamp(20px, 4vw, 40px);
+  animation: fadeIn 0.6s ease-out;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.tab.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+h2 {
+  color: #38bdf8;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(56, 189, 248, 0.3);
+}
+
+h3 {
+  color: #a855f7;
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  margin: 25px 0 15px;
+}
+
+.checklist {
+  list-style: none;
+}
+
+.checklist li {
+  margin: 12px 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+}
+
+.checklist li:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.3);
+  transform: translateX(5px);
+}
+
+.checklist input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  appearance: none;
+  border: 2px solid #38bdf8;
+  border-radius: 6px;
+  position: relative;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.checklist input[type="checkbox"]:hover {
+  border-color: #a855f7;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+}
+
+.checklist input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #38bdf8, #a855f7);
+  border-color: #a855f7;
+  animation: checkPop 0.3s ease;
+}
+
+@keyframes checkPop {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.checklist input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.checklist label {
+  flex: 1;
+  cursor: pointer;
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  transition: all 0.3s ease;
+}
+
+.checklist input[type="checkbox"]:checked + label {
+  text-decoration: line-through;
+  opacity: 0.5;
+  color: #94a3b8;
+}
+
+.section {
+  margin: 30px 0;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 15px;
+  border-left: 4px solid #38bdf8;
+}
+
+.section h3 {
+  margin-top: 0;
+}
+
+.detail-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.detail-list li {
+  padding: 12px 18px;
+  margin: 10px 0;
+  background: rgba(30, 41, 59, 0.6);
+  border-left: 3px solid #38bdf8;
+  border-radius: 8px;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  transition: all 0.3s ease;
+  line-height: 1.6;
+}
+
+.detail-list li:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-left-color: #a855f7;
+  transform: translateX(5px);
+}
+
+.highlight-box {
+  background: rgba(168, 85, 247, 0.1);
+  border: 2px solid rgba(168, 85, 247, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.warning-box {
+  background: rgba(239, 68, 68, 0.1);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  margin: 15px 0;
+  font-weight: 600;
+}
+
+.success-box {
+  background: rgba(34, 197, 94, 0.1);
+  border: 2px solid rgba(34, 197, 94, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.motivation-popup {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  background: linear-gradient(135deg, #38bdf8, #a855f7);
+  padding: 20px 40px;
+  border-radius: 15px;
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-align: center;
+  z-index: 10000;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  animation: popIn 0.3s ease-out forwards;
+}
+
+@keyframes popIn {
+  to {
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+.celebration {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.celebration.active {
+  display: flex;
+}
+
+.celebration-content {
+  text-align: center;
+  animation: bounce 0.6s ease-out;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.celebration-content h2 {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  border: none;
+}
+
+.close-btn {
+  margin-top: 30px;
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  background: linear-gradient(135deg, #38bdf8, #a855f7);
+  border: none;
+  color: white;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .motivation-popup {
+    font-size: 1.2rem;
+    padding: 15px 25px;
+  }
+  
+  .celebration-content h2 {
+    font-size: 2.5rem;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<h1>⚡ KIRTAN CONTROL PANEL</h1>
+<p class="sub">ICSE 2026 • Jan 24 → March 26</p>
+
+<div class="tabs">
+<button class="tab-btn" data-tab="routine">Daily Routine</button>
+<button class="tab-btn" data-tab="study">Study System</button>
+<button class="tab-btn" data-tab="look">Glow-Up</button>
+</div>
+
+<!-- ROUTINE -->
+<div id="routine" class="tab active">
+<h2>Daily Timeline</h2>
+
+<ul class="checklist">
+<li><input type="checkbox" id="task1"><label for="task1">7:00 Wake, water, toilet</label></li>
+<li><input type="checkbox" id="task2"><label for="task2">7:10 Jaw + neck drills (chin tucks 3×15, neck flexions 3×20)</label></li>
+<li><input type="checkbox" id="task3"><label for="task3">7:20 Morning workout (20 pushups, 30 squats, 1 min plank)</label></li>
+<li><input type="checkbox" id="task4"><label for="task4">7:40 Bath, skincare, hair styling</label></li>
+<li><input type="checkbox" id="task5"><label for="task5">8:10 Breakfast (milk, bananas, peanuts)</label></li>
+<li><input type="checkbox" id="task6"><label for="task6">9:00–10:30 Chem / Maths (3-step method)</label></li>
+<li><input type="checkbox" id="task7"><label for="task7">10:45–12:15 Bio / Physics</label></li>
+<li><input type="checkbox" id="task8"><label for="task8">1:00–2:30 History / Geo</label></li>
+<li><input type="checkbox" id="task9"><label for="task9">3:00–4:30 English / Hindi</label></li>
+<li><input type="checkbox" id="task10"><label for="task10">4:30–5:30 Evening workout (4 rounds)</label></li>
+<li><input type="checkbox" id="task11"><label for="task11">5:30–6:30 MCQs + mistake notebook</label></li>
+<li><input type="checkbox" id="task12"><label for="task12">8:00–10:30 Formulas, reactions, flashcards</label></li>
+<li><input type="checkbox" id="task13"><label for="task13">10:30 Sleep (NO PHONE IN BED)</label></li>
+</ul>
+
+<div class="warning-box">
+⚠️ <strong>Feb 7 & Feb 15:</strong> No study days. Balance by adding 2 extra hours on Feb 6, 8, 14, 16. You don't skip. You balance.
+</div>
+</div>
+
+<!-- STUDY SYSTEM -->
+<div id="study" class="tab">
+<h2>ICSE Study Engine</h2>
+
+<div class="highlight-box">
+<p><strong>🎯 Your Goal:</strong> Walk into ICSE 2026 and dominate. Not by studying like an idiot, but with a system.</p>
+</div>
+
+<div class="section">
+<h3>🔥 The 3-Step Learning Loop</h3>
+<p style="color: #94a3b8; margin-bottom: 15px;">Use this for EVERY subject. No exceptions.</p>
+
+<ul class="detail-list">
+<li><strong>STEP 1 — Learn (30 min)</strong><br>
+• Watch 1 YouTube video on the topic<br>
+• Open NotebookLM → upload your book → ask "Explain [topic] simply"<br>
+• Goal: Can you explain this without looking? If not → repeat</li>
+
+<li><strong>STEP 2 — Convert to Questions (20 min)</strong><br>
+• In NotebookLM or ChatGPT ask: "Give ICSE-style MCQs", "Give assertion-reason", "Give numericals"<br>
+• Solve them. This trains your brain for ICSE 2026 pattern</li>
+
+<li><strong>STEP 3 — Exam Questions (40 min)</strong><br>
+• Take specimen paper / board paper / school paper<br>
+• Solve only questions from that chapter<br>
+• After checking: Write down mistakes</li>
+</ul>
+</div>
+
+<div class="section">
+<h3>🧮 Math Protocol (Your Confusion Killer)</h3>
+<p style="color: #94a3b8; margin-bottom: 15px;">For every chapter, follow this exact sequence:</p>
+
+<ul class="detail-list">
+<li><strong>Step A — Watch (20 min)</strong><br>
+Watch 1 good YouTube video. Don't touch the book yet.</li>
+
+<li><strong>Step B — Understand Pattern (30 min)</strong><br>
+Solve 10 solved examples. You're learning: "When I see THIS type → I use THIS method"</li>
+
+<li><strong>Step C — Practice (60 min)</strong><br>
+Solve 20 questions: 10 easy + 10 hard<br>
+After checking, make 3 lists:<br>
+1. Formula mistake<br>
+2. Concept mistake<br>
+3. Silly mistake<br>
+<span style="color: #a855f7;">Next day you only practice your weak type.</span></li>
+</ul>
+</div>
+
+<div class="success-box">
+<strong>💡 Truth Bomb:</strong> You are not weak. You were just studying like an idiot before. Follow this for 30 days and watch the glow-up in marks AND mirror.
+</div>
+</div>
+
+<!-- GLOW-UP -->
+<div id="look" class="tab">
+<h2>Complete Glow-Up System</h2>
+
+<div class="highlight-box">
+<p><strong>🎯 Mission:</strong> Walk into a room and look like a young man with presence, not a schoolboy.</p>
+<p><strong>Deadline:</strong> March 26, 2026</p>
+<p><strong>Vibe:</strong> Lean. Sharp. Broad. Calm. Magnetic.</p>
+</div>
+
+<div class="section">
+<h3>💈 HAIRCUT (This Changes Your Face)</h3>
+<ul class="detail-list">
+<li><strong>Show barber a photo of:</strong><br>
+"Korean textured crop low taper fade" OR "Soft taper fade with textured top"</li>
+
+<li><strong>What you want:</strong><br>
+• Sides & back faded LOW<br>
+• Top longer<br>
+• Messy texture<br>
+• Fringe NOT straight across</li>
+
+<li><strong>Why:</strong> Your current flat crop hides your forehead and makes your jaw look soft</li>
+</ul>
+</div>
+
+<div class="section">
+<h3>🧴 Daily Hair Styling (Make Straight Hair Messy)</h3>
+<ul class="detail-list">
+<li>1. Wet hair</li>
+<li>2. Towel dry till slightly damp</li>
+<li>3. Pea-size coconut oil or wax</li>
+<li>4. Scrunch hair upward with fingers</li>
+<li>5. Blow air upward (fan or dryer)</li>
+<li>6. Lightly mess with fingers</li>
+</ul>
+<div class="warning-box">❌ Never comb flat</div>
+</div>
+
+<div class="section">
+<h3>💪 Morning Workout (5 min)</h3>
+<ul class="detail-list">
+<li>20 pushups</li>
+<li>30 squats</li>
+<li>1 min plank</li>
+</ul>
+</div>
+
+<div class="section">
+<h3>🏋️ Evening Workout (45-60 min)</h3>
+<p style="color: #94a3b8; margin-bottom: 15px;"><strong>4 ROUNDS:</strong></p>
+<ul class="detail-list">
+<li>Pushups ×15</li>
+<li>Bag rows ×15</li>
+<li>Pike pushups ×10</li>
+<li>Pullups 3–5</li>
+<li>Squats ×25</li>
+<li>Shoulder shrugs (bag) ×20</li>
+</ul>
+</div>
+
+<div class="section">
+<h3>💪 Forearms & Wrists (EVERY DAY)</h3>
+<p style="color: #a855f7; margin-bottom: 15px;"><strong>This will make your hands look masculine and veins pop. By Feb 7 your sleeves will fit differently.</strong></p>
+<ul class="detail-list">
+<li>Bag holds (hold heavy bag) – 60 sec × 3</li>
+<li>Wrist curls (bag) – 3×20</li>
+<li>Reverse wrist curls – 3×20</li>
+<li>Towel hangs from pull-up bar – 30–60 sec × 3</li>
+</ul>
+</div>
+
+<div class="section">
+<h3>🦴 Posture (Night)</h3>
+<ul class="detail-list">
+<li>Wall angels 3×20</li>
+<li>Chin tucks 3×15</li>
+</ul>
+<p style="color: #94a3b8; margin-top: 10px;">This sharpens jaw & makes you look taller</p>
+</div>
+
+<div class="section">
+<h3>🧬 Face & Jaw (Matthew-Type Sharpness)</h3>
+<p style="color: #94a3b8; margin-bottom: 15px;"><strong>DAILY:</strong></p>
+<ul class="detail-list">
+<li>Chin tucks 3×15</li>
+<li>Neck flexions (up/down) 3×20</li>
+<li>Chew sugar-free gum 20–30 min</li>
+</ul>
+<p style="color: #a855f7; margin-top: 10px;">This thickens your neck and defines jaw</p>
+</div>
+
+<div class="section">
+<h3>🧴 Skincare</h3>
+<ul class="detail-list">
+<li><strong>Morning & Night:</strong> Face wash + cold water splash</li>
+<li><strong>2× a week:</strong> Light scrub with wet towel</li>
+<li><strong>❌ NO TOUCHING PIMPLES</strong></li>
+</ul>
+<p style="color: #94a3b8; margin-top: 10px;">Your face will look cleaner & brighter by Feb 7</p>
+</div>
+
+<div class="section">
+<h3>🗣️ Voice & Aura (5 min/day)</h3>
+<ul class="detail-list">
+<li>Breathe from stomach</li>
+<li>Speak slower</li>
+<li>Read aloud 5 minutes</li>
+<li>Hum deep 2 minutes</li>
+</ul>
+<p style="color: #a855f7; margin-top: 10px;">As your chest grows, your voice deepens</p>
+</div>
+
+<div class="section">
+<h3>🍚 Food (Vegetarian, Budget)</h3>
+<p style="color: #94a3b8; margin-bottom: 15px;"><strong>EVERY DAY:</strong></p>
+<ul class="detail-list">
+<li>Rice + dal</li>
+<li>2 bananas</li>
+<li>2 glasses milk</li>
+<li>2 big handfuls peanuts</li>
+<li>Whatever mom cooks</li>
+<li><strong>On egg-allowed days:</strong> 4 eggs</li>
+</ul>
+<div class="success-box">
+<strong>Goal:</strong> 46.5 kg → 50–52 kg by March<br>
+That's what fills your face, chest & jaw
+</div>
+</div>
+
+<div class="section">
+<h3>👔 Farewell Look</h3>
+<ul class="detail-list">
+<li>Black shirt + black trousers + blazer = perfect</li>
+<li><strong>Shoes:</strong> Clean black sneakers / loafers / sports shoes</li>
+<li>Stand tall. Walk slow. Chin up.</li>
+</ul>
+</div>
+
+<div class="highlight-box">
+<h3 style="margin-top: 0;">🎯 What Will Happen</h3>
+<p><strong>By Feb 7:</strong></p>
+<p>• Chest fuller • Arms tighter • Forearms thicker • Neck stronger<br>
+• Jaw sharper • Hair better • Skin cleaner</p>
+<p style="color: #a855f7; margin-top: 15px;"><strong>People will say:</strong> "Bro… you changed."</p>
+<p style="color: #38bdf8; margin-top: 15px;"><strong>By March:</strong> "Kirtan became a man."</p>
+</div>
+
+<div class="success-box" style="text-align: center; font-size: 1.2rem;">
+You are in your glow-up window. Do this and you won't be invisible ever again 😈
+</div>
+</div>
+
+</div>
+
+<div class="celebration" id="celebration">
+<div class="celebration-content">
+<h2>🔥 BEAST MODE 🔥</h2>
+<p style="font-size: 1.5rem; margin: 10px 0;">All tasks completed!</p>
+<p style="color: #38bdf8; font-size: 2rem; margin-top: 20px;">"Bro... you changed."</p>
+<button class="close-btn" id="closeBtn">LET'S GO! 💪</button>
+</div>
+</div>
+
+<script>
+var motivationalMessages = [
+  "💪 Keep pushing, beast!",
+  "🔥 One step closer!",
+  "⚡ You're unstoppable!",
+  "🎯 Beast mode activated!",
+  "💯 That's the spirit!",
+  "🚀 Consistency = Results!",
+  "👑 King energy!",
+  "⭐ You're leveling up!",
+  "💎 Diamond in the making!",
+  "🦁 Roar louder!"
+];
+
+// Tab switching
+var tabButtons = document.querySelectorAll('.tab-btn');
+for (var i = 0; i < tabButtons.length; i++) {
+  tabButtons[i].addEventListener('click', function() {
+    var tabName = this.getAttribute('data-tab');
+    var allTabs = document.querySelectorAll('.tab');
+    for (var j = 0; j < allTabs.length; j++) {
+      allTabs[j].classList.remove('active');
+    }
+    document.getElementById(tabName).classList.add('active');
+  });
+}
+
+// Confetti function
+function createConfetti(x, y) {
+  var colors = ['#38bdf8', '#a855f7', '#f59e0b', '#10b981', '#ef4444'];
+  for (var i = 0; i < 15; i++) {
+    var confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.left = x + 'px';
+    confetti.style.top = y + 'px';
+    confetti.style.width = '10px';
+    confetti.style.height = '10px';
+    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.position = 'fixed';
+    document.body.appendChild(confetti);
+    
+    var angle = Math.random() * Math.PI * 2;
+    var velocity = 3 + Math.random() * 5;
+    var vx = Math.cos(angle) * velocity;
+    var vy = Math.sin(angle) * velocity - 10;
+    
+    animateConfetti(confetti, vx, vy);
+  }
+}
+
+function animateConfetti(element, vx, vy) {
+  var x = parseFloat(element.style.left);
+  var y = parseFloat(element.style.top);
+  var gravity = 0.5;
+  var rotation = 0;
+  
+  function frame() {
+    vy += gravity;
+    x += vx;
+    y += vy;
+    rotation += 10;
+    
+    element.style.left = x + 'px';
+    element.style.top = y + 'px';
+    element.style.transform = 'rotate(' + rotation + 'deg)';
+    element.style.opacity = Math.max(0, 1 - y / window.innerHeight);
+    
+    if (y < window.innerHeight) {
+      requestAnimationFrame(frame);
+    } else {
+      element.remove();
+    }
+  }
+  
+  requestAnimationFrame(frame);
+}
+
+// Motivation popup
+function showMotivation(message) {
+  var popup = document.createElement('div');
+  popup.className = 'motivation-popup';
+  popup.textContent = message;
+  document.body.appendChild(popup);
+  
+  setTimeout(function() {
+    popup.style.opacity = '0';
+    popup.style.transform = 'translateX(-50%) scale(0.8)';
+    setTimeout(function() {
+      popup.remove();
+    }, 300);
+  }, 1500);
+}
+
+// Check if all tasks complete
+function checkAllComplete() {
+  var checkboxes = document.querySelectorAll('#routine input[type="checkbox"]');
+  var allChecked = true;
+  
+  for (var i = 0; i < checkboxes.length; i++) {
+    if (!checkboxes[i].checked) {
+      allChecked = false;
+      break;
+    }
+  }
+  
+  if (allChecked) {
+    setTimeout(function() {
+      document.getElementById('celebration').classList.add('active');
+      createMassiveConfetti();
+    }, 500);
+  }
+}
+
+// Massive confetti
+function createMassiveConfetti() {
+  var count = 0;
+  var interval = setInterval(function() {
+    createConfetti(Math.random() * window.innerWidth, 0);
+    count++;
+    if (count >= 100) {
+      clearInterval(interval);
+    }
+  }, 30);
+}
+
+// Close celebration
+document.getElementById('closeBtn').addEventListener('click', function() {
+  document.getElementById('celebration').classList.remove('active');
+});
+
+// Daily reset and load saved state
+var today = new Date().toDateString();
+var storedDay = localStorage.getItem("day");
+
+if (storedDay !== today) {
+  var allCheckboxes = document.querySelectorAll("input[type='checkbox']");
+  for (var i = 0; i < allCheckboxes.length; i++) {
+    allCheckboxes[i].checked = false;
+  }
+  localStorage.setItem("day", today);
+  localStorage.removeItem("checkboxStates");
+} else {
+  var savedStates = localStorage.getItem("checkboxStates");
+  if (savedStates) {
+    savedStates = JSON.parse(savedStates);
+    for (var key in savedStates) {
+      var checkbox = document.getElementById(key);
+      if (checkbox) {
+        checkbox.checked = savedStates[key];
+      }
+    }
+  }
+}
+
+// Checkbox event listeners
+var checkboxes = document.querySelectorAll("input[type='checkbox']");
+for (var i = 0; i < checkboxes.length; i++) {
+  checkboxes[i].addEventListener('change', function() {
+    var savedStates = localStorage.getItem("checkboxStates");
+    savedStates = savedStates ? JSON.parse(savedStates) : {};
+    savedStates[this.id] = this.checked;
+    localStorage.setItem("checkboxStates", JSON.stringify(savedStates));
+    
+    if (this.checked) {
+      var rect = this.getBoundingClientRect();
+      createConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      
+      var randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+      showMotivation(randomMessage);
+      
+      checkAllComplete();
+    }
+  });
+}
+</script>
+</body>
+</html>
